@@ -45,14 +45,36 @@ class Home(Controller):
             Blog(title=title, description=description or None, post=post_content)
         ) 
         return view("home/create")
-        
-    @post("/delete_item/:item_id")
-    async def delete_item(self, request: Request):
-        print(request)
-        return redirect("/")    # @get("/delete/{id:int}")
-    # async def delete(self, id: int):
-    #     try:
-    #         await Blog.delete().where(Blog.id == id).run()
-    #         return self.redirect("/")
-    #     except Exception as e:
-    #         return self.view(error=str(e))
+
+    @post("/delete_item/{blog_id}")
+    async def delete_blog(self, blog_id: int):
+        try:
+            await Blog.delete().where(Blog.id == blog_id)
+            return redirect("/")
+        except Exception as e:
+            print("jonjal")
+            return self.view(error=str(e))
+
+    @get("/edit_blog/{blog_id}")
+    async def edit_blog(self, blog_id: int):
+        try:
+            blog = await Blog.select().where(Blog.id == blog_id).first()
+            if not blog:
+                return self.view(error="Blog post not found.")
+            return self.view("home/edit_blog", blog=blog)
+        except Exception as e:
+            return self.view(error=str(e))
+
+    @post("/edit_blog/{blog_id}")
+    async def update_blog(self, blog_id: int, request: Request):
+        form = await request.form()
+        title = form.get("title", "").strip()
+        description = form.get("description", "").strip()
+        post_content = form.get("post", "").strip()
+        try:
+            await Blog.update(
+                {Blog.title: title, Blog.description: description, Blog.post: post_content}
+            ).where(Blog.id == blog_id)
+            return redirect("/")
+        except Exception as e:
+            return self.view(error=str(e))
