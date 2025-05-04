@@ -1,6 +1,6 @@
 from blacksheep.server.controllers import Controller, get, post, delete,put
 from blacksheep.server.bindings import FromForm , FromJson
-from blacksheep import Request,redirect
+from blacksheep import Request,redirect,Response
 from dataclasses import dataclass
 from blacksheep.server.responses import view
 from piccolo.columns import Varchar, Timestamp, Column
@@ -56,17 +56,19 @@ class Home(Controller):
             return self.view(error=str(e))
 
     @get("/edit_blog/{blog_id}")
-    async def edit_blog(self, blog_id: int):
+    async def edit(self, blog_id: int):
+        print("get request")
         try:
             blog = await Blog.select().where(Blog.id == blog_id).first()
             if not blog:
                 return self.view(error="Blog post not found.")
-            return self.view("home/edit_blog", blog=blog)
+            return view('home/edit',blog=blog)
         except Exception as e:
             return self.view(error=str(e))
 
     @post("/edit_blog/{blog_id}")
-    async def update_blog(self, blog_id: int, request: Request):
+    async def update(self, blog_id: int, request: Request):
+        print("post request")
         form = await request.form()
         title = form.get("title", "").strip()
         description = form.get("description", "").strip()
