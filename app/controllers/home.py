@@ -46,15 +46,6 @@ class Home(Controller):
         ) 
         return view("home/create")
 
-    @post("/delete_item/{blog_id}")
-    async def delete_blog(self, blog_id: int):
-        try:
-            await Blog.delete().where(Blog.id == blog_id)
-            return redirect("/")
-        except Exception as e:
-            print("jonjal")
-            return self.view(error=str(e))
-
     @get("/edit_blog/{blog_id}")
     async def edit(self, blog_id: int):
         print("get request")
@@ -77,6 +68,16 @@ class Home(Controller):
             await Blog.update(
                 {Blog.title: title, Blog.description: description, Blog.post: post_content}
             ).where(Blog.id == blog_id)
+            return redirect("/")
+        except Exception as e:
+            return self.view(error=str(e))
+
+    @post("/delete_blog/{blog_id}")
+    async def delete_blog(self, blog_id: int):
+        print("delete")
+        try:
+            await Blog.delete().where(Blog.id == blog_id)
+            print("hereeee")
             return redirect("/")
         except Exception as e:
             return self.view(error=str(e))
