@@ -9,7 +9,6 @@ from piccolo.engine import engine_finder
 from piccolo.utils.pydantic import create_pydantic_model
 from blog_db.tables import Blog, BlogIn
 import typing
-
 BlogModelIn: typing.Any = create_pydantic_model(table=BlogIn, model_name=" BlogModelIn")
 
 BlogModelOut: typing.Any = create_pydantic_model(table=Blog, include_default_columns=True, model_name=" BlogModelIn")
@@ -21,63 +20,9 @@ BlogModelPartial: typing.Any = create_pydantic_model(
 class Home(Controller):
     @get("/")
     async def index(self):
-        # Since the @get() decorator is used without arguments, the URL path
-        # is by default "/"
-
-        # Since the view function is called without parameters, the name is
-        # obtained from the calling request handler: 'index',
-        # -> /views/home/index.jinja
         try:
             blog = await Blog.select()
+            print(blog)
             return self.view(blog=blog)
-        except Exception as e:
-            return self.view(error=str(e))
-    @get("/create_blog")
-    async def create(self):
-        return self.view()
-    @post("/create_blog")
-    async def create_blog_post(self, request: Request):
-        form = await request.form()
-        title = form.get("title", "").strip()
-        description = form.get("description", "").strip()
-        post_content = form.get("post", "").strip()
-        await Blog.insert(
-            Blog(title=title, description=description or None, post=post_content)
-        ) 
-        return view("home/create")
-
-    @get("/edit_blog/{blog_id}")
-    async def edit(self, blog_id: int):
-        print("get request")
-        try:
-            blog = await Blog.select().where(Blog.id == blog_id).first()
-            if not blog:
-                return self.view(error="Blog post not found.")
-            return view('home/edit',blog=blog)
-        except Exception as e:
-            return self.view(error=str(e))
-
-    @post("/edit_blog/{blog_id}")
-    async def update(self, blog_id: int, request: Request):
-        print("post request")
-        form = await request.form()
-        title = form.get("title", "").strip()
-        description = form.get("description", "").strip()
-        post_content = form.get("post", "").strip()
-        try:
-            await Blog.update(
-                {Blog.title: title, Blog.description: description, Blog.post: post_content}
-            ).where(Blog.id == blog_id)
-            return redirect("/")
-        except Exception as e:
-            return self.view(error=str(e))
-
-    @post("/delete_blog/{blog_id}")
-    async def delete_blog(self, blog_id: int):
-        print("delete")
-        try:
-            await Blog.delete().where(Blog.id == blog_id)
-            print("hereeee")
-            return redirect("/")
         except Exception as e:
             return self.view(error=str(e))
