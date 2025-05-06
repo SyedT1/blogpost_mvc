@@ -29,7 +29,7 @@ class Home(Controller):
             offset = (page - 1) * limit
 
             total = await Blog.count()
-            blog = await Blog.select().order_by(Blog.id,ascending=False).limit(limit).offset(offset)
+            blog = await Blog.select().order_by(Blog.datetime_of_update,ascending=False).limit(limit).offset(offset)
             pages = (total // limit) + (1 if total % limit else 0)
 
             return self.view(

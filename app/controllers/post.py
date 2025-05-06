@@ -11,7 +11,7 @@ from blog_db.tables import Blog, BlogIn
 import typing
 from app.binders import PageOptionsBinder
 from domain.common import PageOptions
-
+from datetime import datetime
 
 
 class Post(Controller):
@@ -48,9 +48,12 @@ class Post(Controller):
         title = form.get("title", "").strip()
         description = form.get("description", "").strip()
         post_content = form.get("post", "").strip()
+        now = datetime.now()
+        updated_time = now.strftime("%Y-%m-%d %H:%M:%S.") + f"{now.microsecond:06d}"
+
         try:
             await Blog.update(
-                {Blog.title: title, Blog.description: description, Blog.post: post_content}
+                {Blog.title: title, Blog.description: description, Blog.post: post_content, Blog.datetime_of_update: updated_time}
             ).where(Blog.id == blog_id)
             blog = await Blog.select()
             return redirect("/")

@@ -9,6 +9,7 @@
                 <th>Title</th>
                 <th>Description</th>
                 <th>Date Created</th>
+                <th>Date Modified </th>
                 <th>Actions</th>
             </tr>
         </thead>
@@ -18,6 +19,7 @@
                 <td>{{ item.title }}</td>
                 <td>{{ item.description }}</td>
                 <td>{{ item.datetime_of_creation }}</td>
+                <td> {{ item.datetime_of_update }} </td>
                 <td>
                     <button class="btn btn-sm btn-warning me-2 edit-btn" data-id="{{ item.id }}" onclick="if(confirm('Edit this post?')) window.location.href='http://localhost:44777/edit_blog/{{ item.id }}';">Edit</button>
                     <form method="post" action="/delete_blog/{{ item.id }}/" class="d-inline">
@@ -51,6 +53,8 @@
             </ul>
         </nav>
     </div>
+    <button class="btn btn-sm btn-danger" onclick="if(confirm('Go back to home page?')) window.location.href='http://localhost:44777/'">Back</button>
+
 </div>
 
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
