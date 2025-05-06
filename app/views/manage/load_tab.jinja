@@ -28,6 +28,29 @@
             {% endfor %}
         </tbody>
     </table>
+
+    <!-- Pagination Controls -->
+    <div class="d-flex justify-content-center mt-4">
+        <nav>
+            <ul class="pagination">
+                {% if page > 1 %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page - 1 }}&limit={{ limit }}">Previous</a>
+                </li>
+                {% endif %}
+                {% for p in range(1, pages + 1) %}
+                <li class="page-item {% if p == page %}active{% endif %}">
+                    <a class="page-link" href="?page={{ p }}&limit={{ limit }}">{{ p }}</a>
+                </li>
+                {% endfor %}
+                {% if page < pages %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page + 1 }}&limit={{ limit }}">Next</a>
+                </li>
+                {% endif %}
+            </ul>
+        </nav>
+    </div>
 </div>
 
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
@@ -36,12 +59,15 @@
 <script src="https://cdn.datatables.net/2.0.7/js/dataTables.bootstrap5.min.js"></script>
 <script>
     $(document).ready(function() {
-        $('#blogTable').DataTable();
+        $('#blogTable').DataTable({
+            "paging": false, // Disable DataTables' own paging to use server-side paging
+            "info": false
+        });
 
         // Edit button click
         $('.edit-btn').on('click', function() {
             const id = $(this).data('id');
-            window.location.href = '{{ absurl() }}/delete_blog/' + id;
+            window.location.href = 'http://localhost:44777/edit_blog/' + id;
         });
 
         // Delete button click
