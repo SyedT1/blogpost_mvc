@@ -9,6 +9,8 @@ from piccolo.engine import engine_finder
 from piccolo.utils.pydantic import create_pydantic_model
 from blog_db.tables import Blog, BlogIn
 import typing
+from app.binders import PageOptionsBinder
+from domain.common import PageOptions
 
 
 
@@ -17,7 +19,7 @@ class Post(Controller):
     async def create(self):
         return self.view()
     @post("/create_blog")
-    async def create_blog_post(self, request: Request):
+    async def create_blog_post(self, request: Request,page_options: PageOptions = PageOptionsBinder(PageOptions)):
         form = await request.form()
         title = form.get("title", "").strip()
         description = form.get("description", "").strip()
@@ -25,8 +27,7 @@ class Post(Controller):
         await Blog.insert(
             Blog(title=title, description=description or None, post=post_content)
         )
-        blog = await Blog.select()
-        return view("home/index",blog=blog)
+        return redirect("/")
 
 
     @get("/edit_blog/{blog_id}")
