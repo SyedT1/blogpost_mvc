@@ -48,17 +48,22 @@ class Post(Controller):
         title = form.get("title", "").strip()
         description = form.get("description", "").strip()
         post_content = form.get("post", "").strip()
-        now = datetime.now()
-        updated_time = now.strftime("%Y-%m-%d %H:%M:%S.") + f"{now.microsecond:06d}"
-
+        print(Blog)
         try:
             await Blog.update(
-                {Blog.title: title, Blog.description: description, Blog.post: post_content, Blog.datetime_of_update: updated_time}
-            ).where(Blog.id == blog_id)
-            blog = await Blog.select()
-            return redirect("/")
+                {
+                    Blog.title: title,
+                    Blog.description: description,
+                    Blog.post: post_content,
+                    Blog.datetime_of_update: datetime.now() # <-- update this field
+                }
+            ).where(
+                Blog.id == blog_id
+            )
+
+            return redirect("/load_table")
         except Exception as e:
-            return self.view(error=str(e))
+            return view("home/index",error=str(e))
 
     @post("/delete_blog/{blog_id}")
     async def delete_blog(self, blog_id: int):
