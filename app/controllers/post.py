@@ -27,19 +27,7 @@ class Post(Controller):
         )
         blog = await Blog.select()
         return view("home/index",blog=blog)
-#     @get("/")
-#     async def index(self):
-#         # Since the @get() decorator is used without arguments, the URL path
-#         # is by default "/"
-#
-#         # Since the view function is called without parameters, the name is
-#         # obtained from the calling request handler: 'index',
-#         # -> /views/home/index.jinja
-#         try:
-#             blog = await Blog.select()
-#             return self.view(blog=blog)
-#         except Exception as e:
-#             return self.view(error=str(e))
+
 
     @get("/edit_blog/{blog_id}")
     async def edit(self, blog_id: int):
@@ -74,6 +62,6 @@ class Post(Controller):
         try:
             await Blog.delete().where(Blog.id == blog_id)
             print("hereeee")
-            return redirect("/")
+            return redirect("/load_table")
         except Exception as e:
             return self.view(error=str(e))

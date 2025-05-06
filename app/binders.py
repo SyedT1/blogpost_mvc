@@ -33,7 +33,7 @@ class PageOptionsBinder(Binder):
         else:
             page = page[0]
         if limit is None:
-            limit = 100
+            limit = 5
         else:
             limit = limit[0]
         if continuation_id is not None:
