@@ -33,7 +33,7 @@ if __name__ == "__main__":
     root_path = os.environ.get("APP_ROOT_PATH", "")
     uvicorn.run(
         "app.main:app",
-        host="localhost",
+        host="0.0.0.0",
         port=port,
         lifespan="on",
         log_level="info",

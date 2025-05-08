@@ -14,14 +14,33 @@ from domain.common import PageOptions
 
 class Manage(Controller):
     @get("/load_table")
-    async def load_tab(self, page_options: PageOptions = PageOptionsBinder(PageOptions)):
+    async def load_tab(self, page_options: PageOptions = PageOptionsBinder(PageOptions), request: Request = None):
         try:
             page = int(page_options.page) if page_options.page else 1
             limit = int(page_options.limit) if page_options.limit else 5
             offset = (page - 1) * limit
+            search_value = request.query.get("search")
+            # Get sort params from query
+            sort_by = "id" if not isinstance(request.query.get("sort_by"),list) else request.query.get("sort_by")[0]
+            sort_dir =  "asc" if not isinstance(request.query.get("sort_dir"),list) else request.query.get("sort_dir")[0]
+            map_of_sort_by = {
+                "id" : Blog.id,
+                "datetime_of_creation": Blog.datetime_of_creation,
+                "datetime_of_update": Blog.datetime_of_update
+            }
+            is_ascending = True if sort_dir == "asc" else False
 
             total = await Blog.count()
-            blog = await Blog.select().limit(limit).offset(offset)
+            print(search_value)
+            blog = None
+            if search_value:
+                search_value = search_value[0]
+                string = f'%{search_value}%'
+                blog = await Blog.select().where(Blog.title.ilike(string) | Blog.description.ilike(string)).order_by(map_of_sort_by[sort_by], ascending=is_ascending).limit(limit).offset(offset)
+                total = await Blog.count().where(Blog.title.ilike(string))
+            else:
+                blog = await Blog.select().order_by(map_of_sort_by[sort_by], ascending=is_ascending).limit(limit).offset(offset)
+            print(blog)
             pages = (total // limit) + (1 if total % limit else 0)
 
             return self.view(
@@ -29,7 +48,9 @@ class Manage(Controller):
                 page=page,
                 limit=limit,
                 total=total,
-                pages=pages
+                pages=pages,
+                sort_by=sort_by,
+                sort_dir=sort_dir
             )
         except Exception as e:
             return self.view(

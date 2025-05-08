@@ -18,8 +18,10 @@ class Post(Controller):
     @get("/create_blog")
     async def create(self):
         return self.view()
+
+
     @post("/create_blog")
-    async def create_blog_post(self, request: Request,page_options: PageOptions = PageOptionsBinder(PageOptions)):
+    async def create_blog_post(self, request: Request):
         form = await request.form()
         title = form.get("title", "").strip()
         description = form.get("description", "").strip()
