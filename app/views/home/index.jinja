@@ -161,6 +161,16 @@
 
 <section class="page-section" id="blogs">
     <div class="container py-4">
+        <div class="d-flex justify-content-end align-items-center mb-3">
+            {% if username %}
+                <span class="me-3 text-success">Logged in as <b>{{ username }}</b> ({{ role }})</span>
+                <a href="/logout" class="btn btn-outline-secondary btn-sm">Logout</a>
+            {% else %}
+                <span class="me-3 text-danger">Not logged in</span>
+                <a href="/login" class="btn btn-outline-primary btn-sm">Login</a>
+            {% endif %}
+        </div>
+        {% if role == "superadmin" %}
         <div class="action-bar mb-3">
             <button 
                 class="btn btn-primary"
@@ -168,7 +178,12 @@
             >
                 <i class="bi bi-gear"></i> Manage Posts
             </button>
+            <a href="/manage_user" class="btn btn-success ms-2">
+                <i class="bi bi-person-plus"></i> Manage Users
+            </a>
         </div>
+        {% endif %}
+        {% if username %}
         <div class="blog-create-bg" style="padding:0;">
             <div class="container" style="max-width: 650px;">
                 <div class="card blog-create-card shadow-lg border-0 mb-5">
@@ -200,6 +215,11 @@
                 </div>
             </div>
         </div>
+        {% else %}
+        <div class="alert alert-warning text-center my-4">
+            You must be <a href="/login">logged in</a> to create a blog post.
+        </div>
+        {% endif %}
         <h2 class="text-center text-uppercase text-secondary mb-4 fw-bold" style="letter-spacing:1.5px;">Blog Posts</h2>
         <div class="divider-custom mb-4">
             <div class="divider-custom-line"></div>

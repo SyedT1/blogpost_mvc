@@ -14,3 +14,10 @@ class BlogIn(Table):
     title = Varchar()
     description = Varchar()
     post = Varchar()
+
+
+
+class UserInfo(Table):
+    username = Varchar()
+    password = Varchar()
+    role = Varchar(default="user")  # "superadmin" or "user"

@@ -22,7 +22,7 @@ BlogModelPartial: typing.Any = create_pydantic_model(
 
 class Home(Controller):
     @get("/")
-    async def index(self, page_options: PageOptions = PageOptionsBinder(PageOptions)):
+    async def index(self, page_options: PageOptions = PageOptionsBinder(PageOptions),request: Request = None):
         try:
             page = int(page_options.page) if page_options.page else 1
             limit = int(page_options.limit) if page_options.limit else 5
@@ -31,13 +31,20 @@ class Home(Controller):
             total = await Blog.count()
             blog = await Blog.select().order_by(Blog.datetime_of_update,ascending=False).limit(limit).offset(offset)
             pages = (total // limit) + (1 if total % limit else 0)
-
+            username = None
+            role = None
+            if request.identity is not None:
+                username = request.identity.claims.get("name")
+                role = request.identity.claims.get("role")
+            print(username)
             return self.view(
                 blog=blog,
                 page=page,
                 limit=limit,
                 total=total,
-                pages=pages
+                pages=pages,
+                username=username,
+                role=role,
             )
         except Exception as e:
             return self.view(

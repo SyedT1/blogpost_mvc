@@ -24,7 +24,7 @@ def configure_application(
 
     app.serve_files("app/static")
     configure_error_handlers(app)
-    configure_authentication(app, settings)
+    configure_authentication(app,settings)
     configure_docs(app, settings)
     configure_templating(app, settings)
     return app
