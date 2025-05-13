@@ -233,7 +233,7 @@
                             <img src="{{ item.avatar_url or absurl() ~ 'images/jellyfish.jpg' }}" class="avatar" alt="avatar" />
                             <div>
                                 <span class="post-title">{{ item.title }}</span>
-                                <span class="post-date">{{ item.datetime_of_creation }}</span>
+                                <span class="post-date">{{ item.formatted_datetime_of_creation }}</span>
                             </div>
                         </div>
                         <div class="post-description">{{ item.description }}</div>

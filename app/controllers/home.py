@@ -11,6 +11,7 @@ from blog_db.tables import Blog, BlogIn
 import typing
 from app.binders import PageOptionsBinder
 from domain.common import PageOptions
+from datetime import datetime
 
 BlogModelIn: typing.Any = create_pydantic_model(table=BlogIn, model_name=" BlogModelIn")
 
@@ -19,6 +20,35 @@ BlogModelOut: typing.Any = create_pydantic_model(table=Blog, include_default_col
 BlogModelPartial: typing.Any = create_pydantic_model(
     table=Blog, model_name="BlogModelPartial", all_optional=True
 )
+from datetime import datetime
+
+def time_ago(dt):
+    if isinstance(dt, str):
+        dt = datetime.fromisoformat(dt)
+    now = datetime.now()  # System local time
+    diff = now - dt
+
+    seconds = diff.total_seconds()
+    minutes = int(seconds // 60)
+    hours = int(seconds // 3600)
+    days = int(seconds // 86400)
+
+    if seconds < 60:
+        return "just now"
+    elif minutes == 1:
+        return "a minute ago"
+    elif minutes < 60:
+        return f"{minutes} minutes ago"
+    elif hours == 1:
+        return "an hour ago"
+    elif hours < 24:
+        return f"{hours} hours ago"
+    elif days == 1:
+        return "a day ago"
+    elif days < 7:
+        return f"{days} days ago"
+    else:
+        return dt.strftime("%d %b %Y, %I:%M %p")
 
 class Home(Controller):
     @get("/")
@@ -36,6 +66,8 @@ class Home(Controller):
             if request.identity is not None:
                 username = request.identity.claims.get("name")
                 role = request.identity.claims.get("role")
+            for item in blog:
+                item["formatted_datetime_of_creation"] = time_ago(item["datetime_of_creation"])
             print(username)
             return self.view(
                 blog=blog,
