@@ -172,7 +172,7 @@
         </div>
         {% if username %}
         <div class="action-bar mb-3">
-            <button
+            <button 
                 class="btn btn-primary"
                 onclick="if(confirm('Go to manage posts page?')) window.location.href='http://192.168.3.83:44777/load_table';"
             >
@@ -209,6 +209,27 @@
                                 <label for="post" class="form-label">Content</label>
                                 <textarea class="form-control" id="post" name="post" rows="7" placeholder="Write your blog content here..." required></textarea>
                             </div>
+                            <div class="form-group mb-4">
+                                <label for="category" class="form-label">Category</label>
+                                <select class="form-select" id="category" name="category" required>
+                                    {% for cat in categories %}
+                                        <option value="{{ cat.id }}">{{ cat.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="form-group mb-4">
+                                <label for="tags" class="form-label">Tags</label>
+                                <div id="tag-list" class="mb-2"></div>
+                                <input type="text" class="form-control" id="tag-input" placeholder="Add a tag and press Enter">
+                                <div class="mt-2">
+                                    <span class="fw-semibold">Top Tags:</span>
+                                    {% for tag in top_tags %}
+                                        <span class="badge bg-dark text-white tag-suggestion" style="cursor:pointer;" data-tag="{{ tag.name }}">{{ tag.name }}</span>
+                                    {% endfor %}
+                                </div>
+                                <input type="hidden" name="tags" id="tags-hidden">
+                                <small class="form-text text-muted">Click a tag to add, or type a new one. Click × to remove.</small>
+                            </div>
                             <div class="d-grid">
                                 <button type="submit" class="btn btn-primary btn-lg rounded-pill shadow-sm">Create</button>
                             </div>
@@ -234,12 +255,25 @@
                         <div class="post-header">
                             <img src="{{ item.avatar_url or absurl() ~ 'images/jellyfish.jpg' }}" class="avatar" alt="avatar" />
                             <div>
-                                <span class="post-title">{{ item.title }}</span>
+                                <a href="/post/{{ item.id }}" class="post-title" style="text-decoration: none;">
+                                    {{ item.title }}
+                                </a>
                                 <span class="post-date">{{ item.formatted_datetime_of_creation }}</span>
                             </div>
                         </div>
+                        <div class="mb-1">
+                            <span class="badge bg-info text-dark me-2">{{ item.category_name }}</span>
+                            <span class="text-muted small">by {{ item.author_name }}</span>
+                        </div>
+                        <div class="mb-2">
+                            {% for tag in item.tags %}
+                                <span class="badge bg-dark text-white me-1">{{ tag }}</span>
+                            {% endfor %}
+                        </div>
                         <div class="post-description">{{ item.description }}</div>
-                        <div class="post-content">{{ item.post }}</div>
+                        <div class="post-content">
+                            {{ item.post[:60] }}{% if item.post|length > 60 %}...{% endif %}
+                        </div>
                     </div>
                 {% endfor %}
             </div>
@@ -277,4 +311,51 @@
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script src="{{absurl()}}scripts/freelancer.js"></script>
+<script>
+let tags = [];
+
+function updateTagList() {
+    const tagList = document.getElementById('tag-list');
+    tagList.innerHTML = '';
+    tags.forEach(tag => {
+        const span = document.createElement('span');
+        span.className = 'badge bg-dark text-white me-2 mb-1'; // changed here
+        span.textContent = tag + ' ';
+        const remove = document.createElement('span');
+        remove.innerHTML = '&times;';
+        remove.style.cursor = 'pointer';
+        remove.onclick = () => {
+            tags = tags.filter(t => t !== tag);
+            updateTagList();
+        };
+        span.appendChild(remove);
+        tagList.appendChild(span);
+    });
+    document.getElementById('tags-hidden').value = tags.join(',');
+}
+
+document.getElementById('tag-input').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter' && this.value.trim()) {
+        e.preventDefault();
+        const val = this.value.trim();
+        if (val && !tags.includes(val)) {
+            tags.push(val);
+            updateTagList();
+        }
+        this.value = '';
+    }
+});
+
+document.querySelectorAll('.tag-suggestion').forEach(el => {
+    el.addEventListener('click', function() {
+        const tag = this.getAttribute('data-tag');
+        if (!tags.includes(tag)) {
+            tags.push(tag);
+            updateTagList();
+        }
+    });
+});
+
+updateTagList();
+</script>
 {%- endblock -%}
