@@ -7,27 +7,31 @@ from piccolo.columns import Varchar, Timestamp, Column
 from piccolo.columns.column_types import TimestampNow
 from piccolo.engine import engine_finder
 from piccolo.utils.pydantic import create_pydantic_model
-from blog_db.tables import Blog, BlogIn
+from blog_db.tables import Blog, BlogIn, UserInfo
 import typing
+from blacksheep.server.authorization import auth
+
 from app.binders import PageOptionsBinder
 from domain.common import PageOptions
 from datetime import datetime
 
 
 class Post(Controller):
+    @auth("authenticated")
     @get("/create_blog")
     async def create(self):
         return self.view()
 
-
+    @auth("authenticated")
     @post("/create_blog")
     async def create_blog_post(self, request: Request):
         form = await request.form()
         title = form.get("title", "").strip()
         description = form.get("description", "").strip()
         post_content = form.get("post", "").strip()
+        author_id = request.identity.claims.get("id")
         await Blog.insert(
-            Blog(title=title, description=description or None, post=post_content)
+            Blog(title=title, description=description or None, post=post_content,author_id=author_id)
         )
         return redirect("/")
 

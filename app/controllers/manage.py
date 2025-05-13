@@ -29,20 +29,54 @@ class Manage(Controller):
                 "datetime_of_update": Blog.datetime_of_update
             }
             is_ascending = True if sort_dir == "asc" else False
+            role = request.identity.claims.get("role")
+            user_id = request.identity.claims.get("id")
+            blog,total,pages = None,0,0
+            print(user_id)
+            if role != 'superadmin':
+                blog = await Blog.select().where(Blog.author_id==int(user_id))
+                if search_value:
+                    search_value = search_value[0]
+                    string = f'%{search_value}%'
+                    blog = await Blog.select().where(
+                        (Blog.author_id == int(user_id)) & (Blog.title.ilike(string) | Blog.description.ilike(string))).order_by(map_of_sort_by[sort_by],
+                                                                                            ascending=is_ascending).limit(
+                        limit).offset(offset)
+                    total = await Blog.count().where(
+                        (Blog.title.ilike(string)) & (Blog.author_id == int(user_id))
+                    )
+                else:
+                    blog = await Blog.select().where(Blog.author_id==int(user_id)).order_by(map_of_sort_by[sort_by], ascending=is_ascending).limit(
+                        limit).offset(offset)
 
-            total = await Blog.count()
-            print(search_value)
-            blog = None
-            if search_value:
-                search_value = search_value[0]
-                string = f'%{search_value}%'
-                blog = await Blog.select().where(Blog.title.ilike(string) | Blog.description.ilike(string)).order_by(map_of_sort_by[sort_by], ascending=is_ascending).limit(limit).offset(offset)
-                total = await Blog.count().where(Blog.title.ilike(string))
+                    total = await Blog.count().where(Blog.author_id==int(user_id))
+                pages = (total // limit) + (1 if total % limit else 0)
             else:
-                blog = await Blog.select().order_by(map_of_sort_by[sort_by], ascending=is_ascending).limit(limit).offset(offset)
-            print(blog)
-            pages = (total // limit) + (1 if total % limit else 0)
+                if search_value:
+                    search_value = search_value[0]
+                    string = f'%{search_value}%'
+                    blog = await Blog.select().where(
+                        Blog.title.ilike(string) | Blog.description.ilike(string)).order_by(map_of_sort_by[sort_by],
+                                                                                            ascending=is_ascending).limit(
+                        limit).offset(offset)
+                    total = await Blog.count().where(Blog.title.ilike(string))
+                else:
+                    blog = await Blog.select().order_by(map_of_sort_by[sort_by], ascending=is_ascending).limit(
+                        limit).offset(offset)
 
+                    total = await Blog.count()
+                print(total)
+                pages = (total // limit) + (1 if total % limit else 0)
+            # query = await Blog.select()
+            # l_o_b_s = await Blog.select().where(Blog.author_id==3)
+            # print(l_o_b_s)
+            # if role != "superadmin":
+            #     query = await query.where(Blog.author_id == int(user_id))  # Filter by author for regular users
+
+            # if search_value:
+            #     search_value = search_value[0]
+            #     string = f'%{search_value}%'
+            #     blog = blog.where(Blog.title.ilike(string) | Blog.description.ilike(string))
             return self.view(
                 blog=blog,
                 page=page,

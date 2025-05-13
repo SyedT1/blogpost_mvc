@@ -21,7 +21,8 @@ class JWTAuthHandler(AuthenticationHandler):
             payload = jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
             context.identity = Identity({
                 "name": payload.get("sub"),
-                "role": payload.get("role", "user")
+                "role": payload.get("role", "user"),
+                "id": payload.get("id")
             }, "JWT")
             print(context.identity.claims.values())
         except Exception:

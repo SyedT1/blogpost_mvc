@@ -30,7 +30,7 @@ class User(Controller):
         # print(user["role"])
         if user:
             token = jwt.encode(
-                {"sub": username, "role": user["role"]},
+                {"sub": username, "role": user["role"], "id": user["id"]},
                 SECRET_KEY,
                 algorithm="HS256"
             )
