@@ -319,7 +319,7 @@ function updateTagList() {
     tagList.innerHTML = '';
     tags.forEach(tag => {
         const span = document.createElement('span');
-        span.className = 'badge bg-dark text-white me-2 mb-1'; // changed here
+        span.className = 'badge bg-dark text-white me-2 mb-1';
         span.textContent = tag + ' ';
         const remove = document.createElement('span');
         remove.innerHTML = '&times;';
@@ -334,24 +334,34 @@ function updateTagList() {
     document.getElementById('tags-hidden').value = tags.join(',');
 }
 
+// Limit to 7 tags when typing
 document.getElementById('tag-input').addEventListener('keydown', function(e) {
     if (e.key === 'Enter' && this.value.trim()) {
         e.preventDefault();
         const val = this.value.trim();
         if (val && !tags.includes(val)) {
-            tags.push(val);
-            updateTagList();
+            if (tags.length < 7) {
+                tags.push(val);
+                updateTagList();
+            } else {
+                alert('You can select at most 7 tags.');
+            }
         }
         this.value = '';
     }
 });
 
+// Limit to 7 tags when clicking suggestions
 document.querySelectorAll('.tag-suggestion').forEach(el => {
     el.addEventListener('click', function() {
         const tag = this.getAttribute('data-tag');
         if (!tags.includes(tag)) {
-            tags.push(tag);
-            updateTagList();
+            if (tags.length < 7) {
+                tags.push(tag);
+                updateTagList();
+            } else {
+                alert('You can select at most 7 tags.');
+            }
         }
     });
 });

@@ -9,6 +9,7 @@ from piccolo.engine import engine_finder
 from piccolo.utils.pydantic import create_pydantic_model
 from blog_db.tables import Blog, BlogIn
 import typing
+from domain.common import TimeFormatter
 from blog_db.tables import Category,Tag, BlogTag, UserInfo
 from app.binders import PageOptionsBinder
 from domain.common import PageOptions
@@ -22,34 +23,6 @@ BlogModelPartial: typing.Any = create_pydantic_model(
     table=Blog, model_name="BlogModelPartial", all_optional=True
 )
 from datetime import datetime
-
-def time_ago(dt):
-    if isinstance(dt, str):
-        dt = datetime.fromisoformat(dt)
-    now = datetime.now()  # System local time
-    diff = now - dt
-
-    seconds = diff.total_seconds()
-    minutes = int(seconds // 60)
-    hours = int(seconds // 3600)
-    days = int(seconds // 86400)
-
-    if seconds < 60:
-        return "just now"
-    elif minutes == 1:
-        return "a minute ago"
-    elif minutes < 60:
-        return f"{minutes} minutes ago"
-    elif hours == 1:
-        return "an hour ago"
-    elif hours < 24:
-        return f"{hours} hours ago"
-    elif days == 1:
-        return "a day ago"
-    elif days < 7:
-        return f"{days} days ago"
-    else:
-        return dt.strftime("%d %b %Y, %I:%M %p")
 
 class Home(Controller):
     @get("/")
@@ -67,24 +40,19 @@ class Home(Controller):
             if request.identity is not None:
                 username = request.identity.claims.get("name")
                 role = request.identity.claims.get("role")
-            print(blog)
+            # print(blog)
             for item in blog:
-                item["formatted_datetime_of_creation"] = time_ago(item["datetime_of_creation"])
+                item["formatted_datetime_of_creation"] = TimeFormatter.from_datetime(item["datetime_of_creation"]).time_ago
                 # # Fetch category name
                 category = await Category.select(Category.name).where(Category.id == item["category"]).first()
                 item["category_name"] = category["name"] if category else "Uncategorized"
                 # # Fetch author name
                 author = await UserInfo.select(UserInfo.username).where(UserInfo.id == item["author_id"]).first()
                 item["author_name"] = author["username"] if author else "Unknown"
-                # print(item["author_name"])
-                # # Fetch tags
-                # tags = await BlogTag.select(BlogTag.tag.name).where(BlogTag.blog == item["id"])
-                # item["tags"] = [tag["name"] for tag in tags] if tags else []
-                # print(tags)
                 tags = await BlogTag.select(BlogTag.tag.name).where(BlogTag.blog == item["id"])
                 item["tags"] = [tag["tag.name"] for tag in tags] if tags else []
-                print(item["tags"])
-            print(username)
+                # print(item["tags"])
+            # print(username)
             categories = await Category.select().run()
             top_tags = await Tag.select().limit(10).run()
             return self.view(

@@ -33,3 +33,10 @@ class BlogIn(Table):
 class BlogTag(Table):
     blog = ForeignKey(references=Blog)
     tag = ForeignKey(references=Tag)
+
+
+class Comment(Table):
+    post = ForeignKey(references=Blog)
+    author = ForeignKey(references=UserInfo)
+    content = Varchar()
+    datetime_of_creation = Timestamp(default=TimestampNow(), required=False)

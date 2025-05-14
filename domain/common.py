@@ -62,3 +62,46 @@ class TimedMixin(BaseModel):
     created_at: datetime
     updated_at: datetime
     etag: str
+
+
+class TimeFormatter(BaseModel):
+    """
+    Model to represent a datetime and its human-readable 'time ago' string.
+    """
+    original_datetime: datetime
+    time_ago: str
+
+    @classmethod
+    def from_datetime(cls, dt: datetime | str):
+        if isinstance(dt, str):
+            dt_obj = datetime.fromisoformat(dt)
+        else:
+            dt_obj = dt
+        now = datetime.now()
+        diff = now - dt_obj
+
+        seconds = diff.total_seconds()
+        minutes = int(seconds // 60)
+        hours = int(seconds // 3600)
+        days = int(seconds // 86400)
+
+        if seconds < 60:
+            time_ago_str = "just now"
+        elif minutes == 1:
+            time_ago_str = "a minute ago"
+        elif minutes < 60:
+            time_ago_str = f"{minutes} minutes ago"
+        elif hours == 1:
+            time_ago_str = "an hour ago"
+        elif hours < 24:
+            time_ago_str = f"{hours} hours ago"
+        elif days == 1:
+            time_ago_str = "a day ago"
+        elif days < 7:
+            time_ago_str = f"{days} days ago"
+        else:
+            time_ago_str = dt_obj.strftime("%d %b %Y, %I:%M %p")
+
+        return cls(original_datetime=dt_obj, time_ago=time_ago_str)
+
+

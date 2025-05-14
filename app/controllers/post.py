@@ -7,10 +7,10 @@ from piccolo.columns import Varchar, Timestamp, Column
 from piccolo.columns.column_types import TimestampNow
 from piccolo.engine import engine_finder
 from piccolo.utils.pydantic import create_pydantic_model
-from blog_db.tables import Blog, BlogIn, UserInfo, Tag, BlogTag, Category
+from blog_db.tables import Blog, BlogIn, UserInfo, Tag, BlogTag, Category, Comment
 import typing
 from blacksheep.server.authorization import auth
-
+from domain.common import TimeFormatter
 from app.binders import PageOptionsBinder
 from domain.common import PageOptions
 from datetime import datetime
@@ -56,7 +56,7 @@ class Post(Controller):
 
         return redirect("/")
 
-
+    @auth("authenticated")
     @get("/edit_blog/{blog_id}")
     async def edit(self, blog_id: int):
         try:
@@ -73,6 +73,7 @@ class Post(Controller):
         except Exception as e:
             return self.view(error=str(e))
 
+    @auth("authenticated")
     @post("/edit_blog/{blog_id}")
     async def update(self, blog_id: int, request: Request):
         form = await request.form()
@@ -104,6 +105,7 @@ class Post(Controller):
         except Exception as e:
             return view("home/index", error=str(e))
 
+    @auth("authenticated")
     @post("/delete_blog/{blog_id}")
     async def delete_blog(self, blog_id: int):
         print("delete")
@@ -113,3 +115,64 @@ class Post(Controller):
             return redirect("/load_table")
         except Exception as e:
             return self.view(error=str(e))
+
+    @get("/post/{post_id}")
+    async def post_info(self, post_id: int, request: Request):
+        try:
+            blog = await Blog.select().where(Blog.id == post_id).first()
+            # Fetch category name
+            category_name = await Category.select(Category.name).where(Category.id == int(blog["category"]))
+            blog["category"] = category_name[0]["name"] if category_name else "Uncategorized"
+            # Fetch tags (list of strings)
+            tags = await BlogTag.select(BlogTag.tag.name).where(BlogTag.blog == blog["id"])
+            blog["tags"] = [tag["tag.name"] for tag in tags] if tags else []
+            # Fetch author name
+            author = await UserInfo.select(UserInfo.username).where(UserInfo.id == blog["author_id"]).first()
+            blog["author_name"] = author["username"] if author else "Unknown"
+            # Format creation date
+            blog["formatted_datetime_of_creation"] = TimeFormatter.from_datetime(blog["datetime_of_creation"]).time_ago
+            # Pass to template
+            username = request.identity.claims.get("name") if request.identity else None
+            print(username)
+            comments = await Comment.select().where(Comment.post == post_id).order_by(Comment.datetime_of_creation, ascending=False)
+            print(comments)
+            for comment in comments:
+                author = await UserInfo.select(UserInfo.username).where(UserInfo.id == int(comment["author"])).first()
+                comment["author"] = author["username"]
+                comment["formatted_datetime_of_creation"] = TimeFormatter.from_datetime(comment["datetime_of_creation"]).time_ago
+            # username = await UserInfo.select(UserInfo.username).where(UserInfo.id == int(comments["author"])).first()
+            return self.view(blog=blog,username=username,comments=comments)
+        except Exception as e:
+            print(e)
+            return self.view(error=str(e))
+
+    @auth("authenticated")
+    @post("/add_comment/{blog_id}")
+    async def comment(self, blog_id: int, request: Request):
+        try:
+            form = await request.form()
+            content = form.get("content", "").strip()
+            if not content:
+                return self.view(error="Comment cannot be empty.")
+
+            # Get user ID from token
+            author_id = request.identity.claims.get("id")
+            if not author_id:
+                return self.view(error="User not authenticated.")
+
+            # Save the comment
+            await Comment.insert(
+                Comment(
+                    post=blog_id,
+                    author=author_id,
+                    content=content
+                )
+            )
+
+            # Redirect back to the blog post page
+            return redirect(f"/post/{blog_id}")
+
+        except Exception as e:
+            print(e)
+            return self.view(error=str(e))
+
