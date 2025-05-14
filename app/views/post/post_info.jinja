@@ -90,12 +90,11 @@
                 <hr>
                 <div class="comment-section">
                     <h5 class="mb-3">Comments</h5>
-                    {# Example: Loop over comments if you pass them #}
                     {% if comments %}
                         {% for comment in comments %}
                             <div class="comment-card">
                                 <b>{{ comment.author }}</b>
-                                <span class="text-muted small ms-2">{{ comment.format }}</span>
+                                <span class="text-muted small ms-2">{{ comment.formatted_datetime_of_creation }}</span>
                                 <div>{{ comment.content }}</div>
                             </div>
                         {% endfor %}
