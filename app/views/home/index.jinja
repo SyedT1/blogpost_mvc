@@ -21,6 +21,8 @@
         background: rgba(255,255,255,0.98);
         border: none;
         transition: box-shadow 0.3s;
+        width: 100%;
+        max-width: none;
     }
     .blog-create-card:hover {
         box-shadow: 0 16px 56px 0 rgba(99,102,241,0.18);
@@ -93,7 +95,6 @@
         border: 1px solid #e1e8ed;
         border-radius: 2rem;
         margin: 0 auto 24px auto;
-        max-width: 600px;
         box-shadow: 0 4px 24px rgba(99,102,241,0.07);
         padding: 24px 28px;
         transition: box-shadow 0.2s;
@@ -171,70 +172,73 @@
             {% endif %}
         </div>
         {% if username %}
-        <div class="action-bar mb-3">
-            <button 
-                class="btn btn-primary"
-                onclick="if(confirm('Go to manage posts page?')) window.location.href='http://192.168.3.83:44777/load_table';"
-            >
-                <i class="bi bi-gear"></i> Manage Posts
-            </button>
-            {% if role == "superadmin" %}
-            <a href="/create_user" class="btn btn-success ms-2">
-                <i class="bi bi-person-plus"></i> Manage Users
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <div>
+                <button 
+                    class="btn btn-primary"
+                    onclick="if(confirm('Go to manage posts page?')) window.location.href='http://192.168.3.83:44777/load_table';"
+                >
+                    <i class="bi bi-gear"></i> Manage Posts
+                </button>
+                {% if role == "superadmin" %}
+                <a href="/create_user" class="btn btn-success ms-2">
+                    <i class="bi bi-person-plus"></i> Manage Users
+                </a>
+                {% endif %}
+            </div>
+            <a href="/chat" class="btn btn-warning">
+                <i class="bi bi-chat-dots"></i> Chat
             </a>
-            {% endif %}
         </div>
         {% endif %}
         {% if username %}
         <div class="blog-create-bg" style="padding:0;">
-            <div class="container" style="max-width: 650px;">
-                <div class="card blog-create-card shadow-lg border-0 mb-5">
-                    <div class="card-body">
-                        <h2 class="text-center blog-create-title fw-bold">Create a New Blog Post</h2>
-                        {% if success %}
-                            <div class="alert alert-success text-center mb-4" role="alert">
-                                Blog post submitted successfully!
+            <div class="card blog-create-card shadow-lg border-0 mb-5 w-100">
+                <div class="card-body">
+                    <h2 class="text-center blog-create-title fw-bold">Create a New Blog Post</h2>
+                    {% if success %}
+                        <div class="alert alert-success text-center mb-4" role="alert">
+                            Blog post submitted successfully!
+                        </div>
+                    {% endif %}
+                    <form method="post" action="/create_blog/">
+                        <div class="form-group mb-4">
+                            <label for="title" class="form-label">Title</label>
+                            <input type="text" class="form-control" id="title" name="title" placeholder="Enter post title" required>
+                        </div>
+                        <div class="form-group mb-4">
+                            <label for="description" class="form-label">Description</label>
+                            <input type="text" class="form-control" id="description" name="description" placeholder="Short description" required>
+                        </div>
+                        <div class="form-group mb-4">
+                            <label for="post" class="form-label">Content</label>
+                            <textarea class="form-control" id="post" name="post" rows="7" placeholder="Write your blog content here..." required></textarea>
+                        </div>
+                        <div class="form-group mb-4">
+                            <label for="category" class="form-label">Category</label>
+                            <select class="form-select" id="category" name="category" required>
+                                {% for cat in categories %}
+                                    <option value="{{ cat.id }}">{{ cat.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="form-group mb-4">
+                            <label for="tags" class="form-label">Tags</label>
+                            <div id="tag-list" class="mb-2"></div>
+                            <input type="text" class="form-control" id="tag-input" placeholder="Add a tag and press Enter">
+                            <div class="mt-2">
+                                <span class="fw-semibold">Top Tags:</span>
+                                {% for tag in top_tags %}
+                                    <span class="badge bg-dark text-white tag-suggestion" style="cursor:pointer;" data-tag="{{ tag.name }}">{{ tag.name }}</span>
+                                {% endfor %}
                             </div>
-                        {% endif %}
-                        <form method="post" action="/create_blog/">
-                            <div class="form-group mb-4">
-                                <label for="title" class="form-label">Title</label>
-                                <input type="text" class="form-control" id="title" name="title" placeholder="Enter post title" required>
-                            </div>
-                            <div class="form-group mb-4">
-                                <label for="description" class="form-label">Description</label>
-                                <input type="text" class="form-control" id="description" name="description" placeholder="Short description" required>
-                            </div>
-                            <div class="form-group mb-4">
-                                <label for="post" class="form-label">Content</label>
-                                <textarea class="form-control" id="post" name="post" rows="7" placeholder="Write your blog content here..." required></textarea>
-                            </div>
-                            <div class="form-group mb-4">
-                                <label for="category" class="form-label">Category</label>
-                                <select class="form-select" id="category" name="category" required>
-                                    {% for cat in categories %}
-                                        <option value="{{ cat.id }}">{{ cat.name }}</option>
-                                    {% endfor %}
-                                </select>
-                            </div>
-                            <div class="form-group mb-4">
-                                <label for="tags" class="form-label">Tags</label>
-                                <div id="tag-list" class="mb-2"></div>
-                                <input type="text" class="form-control" id="tag-input" placeholder="Add a tag and press Enter">
-                                <div class="mt-2">
-                                    <span class="fw-semibold">Top Tags:</span>
-                                    {% for tag in top_tags %}
-                                        <span class="badge bg-dark text-white tag-suggestion" style="cursor:pointer;" data-tag="{{ tag.name }}">{{ tag.name }}</span>
-                                    {% endfor %}
-                                </div>
-                                <input type="hidden" name="tags" id="tags-hidden">
-                                <small class="form-text text-muted">Click a tag to add, or type a new one. Click × to remove.</small>
-                            </div>
-                            <div class="d-grid">
-                                <button type="submit" class="btn btn-primary btn-lg rounded-pill shadow-sm">Create</button>
-                            </div>
-                        </form>
-                    </div>
+                            <input type="hidden" name="tags" id="tags-hidden">
+                            <small class="form-text text-muted">Click a tag to add, or type a new one. Click × to remove.</small>
+                        </div>
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary btn-lg rounded-pill shadow-sm">Create</button>
+                        </div>
+                    </form>
                 </div>
             </div>
         </div>
@@ -249,30 +253,32 @@
             <div class="divider-custom-line"></div>
         </div>
         {% if blog %}
-            <div class="d-flex flex-column align-items-center">
+            <div class="row g-4">
                 {% for item in blog %}
-                    <div class="twitter-post w-100">
-                        <div class="post-header">
-                            <img src="{{ item.avatar_url or absurl() ~ 'images/jellyfish.jpg' }}" class="avatar" alt="avatar" />
-                            <div>
-                                <a href="/post/{{ item.id }}" class="post-title" style="text-decoration: none;">
-                                    {{ item.title }}
-                                </a>
-                                <span class="post-date">{{ item.formatted_datetime_of_creation }}</span>
+                    <div class="col-12">
+                        <div class="twitter-post w-100">
+                            <div class="post-header">
+                                <img src="{{ item.avatar_url or absurl() ~ 'images/jellyfish.jpg' }}" class="avatar" alt="avatar" />
+                                <div>
+                                    <a href="/post/{{ item.id }}" class="post-title" style="text-decoration: none;">
+                                        {{ item.title }}
+                                    </a>
+                                    <span class="post-date">{{ item.formatted_datetime_of_creation }}</span>
+                                </div>
                             </div>
-                        </div>
-                        <div class="mb-1">
-                            <span class="badge bg-info text-dark me-2">{{ item.category_name }}</span>
-                            <span class="text-muted small">by {{ item.author_name }}</span>
-                        </div>
-                        <div class="mb-2">
-                            {% for tag in item.tags %}
-                                <span class="badge bg-dark text-white me-1">{{ tag }}</span>
-                            {% endfor %}
-                        </div>
-                        <div class="post-description">{{ item.description }}</div>
-                        <div class="post-content">
-                            {{ item.post[:60] }}{% if item.post|length > 60 %}...{% endif %}
+                            <div class="mb-1">
+                                <span class="badge bg-info text-dark me-2">{{ item.category_name }}</span>
+                                <span class="text-muted small">by {{ item.author_name }}</span>
+                            </div>
+                            <div class="mb-2">
+                                {% for tag in item.tags %}
+                                    <span class="badge bg-dark text-white me-1">{{ tag }}</span>
+                                {% endfor %}
+                            </div>
+                            <div class="post-description">{{ item.description }}</div>
+                            <div class="post-content">
+                                {{ item.post[:60] }}{% if item.post|length > 60 %}...{% endif %}
+                            </div>
                         </div>
                     </div>
                 {% endfor %}

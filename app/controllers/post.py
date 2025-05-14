@@ -66,9 +66,13 @@ class Post(Controller):
             categories = await Category.select().run()
             top_tags = await Tag.select().limit(10).run()
             # Get current tags for this blog
-            blog_tags = await BlogTag.select().where(BlogTag.blog == blog_id).run()
-            tag_ids = [bt.tag for bt in blog_tags]
-            current_tags = await Tag.select().where(Tag.id.in_(tag_ids)).run()
+            blog_tags = await BlogTag.select(BlogTag.tag).where(BlogTag.blog == blog_id).run()
+            print(blog_tags)
+            tags_ids = None
+            current_tags = []
+            if len(blog_tags) > 0:
+                tag_ids = [bt["tag"] for bt in blog_tags]
+                current_tags = await Tag.select(Tag.name).where(Tag.id.is_in(tag_ids)).run()
             return view('post/edit', blog=blog, categories=categories, top_tags=top_tags, current_tags=current_tags)
         except Exception as e:
             return self.view(error=str(e))
@@ -76,12 +80,13 @@ class Post(Controller):
     @auth("authenticated")
     @post("/edit_blog/{blog_id}")
     async def update(self, blog_id: int, request: Request):
+        print("hello")
         form = await request.form()
         title = form.get("title", "").strip()
         description = form.get("description", "").strip()
         post_content = form.get("post", "").strip()
         category_id = int(form.get("category"))
-        tag_names = [t.strip() for t in form.get("tags", "").split(",") if t.strip()]
+        updated_tag_names = [t.strip() for t in form.get("tags", "").split(",") if t.strip()]
         try:
             await Blog.update(
                 {
@@ -92,18 +97,20 @@ class Post(Controller):
                     Blog.datetime_of_update: datetime.now()
                 }
             ).where(Blog.id == blog_id)
-
-            # Update tags: remove old, add new
-            await BlogTag.delete().where(BlogTag.blog == blog_id)
-            for tag_name in tag_names:
-                tag = await Tag.select().where(Tag.name == tag_name).first()
-                if not tag:
-                    tag = await Tag.insert(Tag(name=tag_name))
-                await BlogTag.insert(BlogTag(blog=blog_id, tag=tag.id))
-
+            existing_tags = await BlogTag.select(BlogTag.tag).where(BlogTag.blog==blog_id)
+            if len(existing_tags) > 0:
+                existing_tags_list = [t["tag"] for t in existing_tags]
+                await BlogTag.delete().where((BlogTag.tag.is_in(existing_tags_list)) & (BlogTag.blog == blog_id))
+            if len(updated_tag_names) > 0:
+                for tag_name in updated_tag_names:
+                    tag = await Tag.select().where(Tag.name == tag_name).first()
+                    if not tag:
+                        tag = await Tag.insert(Tag(name=tag_name))
+                    await BlogTag.insert(BlogTag(blog=blog_id, tag=tag["id"]))
             return redirect("/load_table")
         except Exception as e:
-            return view("home/index", error=str(e))
+            print(e)
+            return redirect("/")
 
     @auth("authenticated")
     @post("/delete_blog/{blog_id}")

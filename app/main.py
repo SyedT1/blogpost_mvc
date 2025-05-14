@@ -4,6 +4,8 @@ This module configures the BlackSheep application before it starts.
 from blacksheep import Application
 from blacksheep.server.diagnostics import get_diagnostic_app
 from blacksheep.server.redirects import get_trailing_slash_middleware
+from blacksheep.server.authorization import Policy
+from guardpost.common import AuthenticatedRequirement
 from rodi import Container
 
 from app.auth import configure_authentication
@@ -22,9 +24,12 @@ def configure_application(
 
     app.middlewares.append(get_trailing_slash_middleware())
 
+    auth_policy = "authenticated"
+    app.use_authorization().add(Policy(auth_policy, AuthenticatedRequirement()))
+
     app.serve_files("app/static")
     configure_error_handlers(app)
-    configure_authentication(app,settings)
+    configure_authentication(app, settings)
     configure_docs(app, settings)
     configure_templating(app, settings)
     return app
