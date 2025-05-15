@@ -118,6 +118,7 @@ class Post(Controller):
         print("delete")
         try:
             await Blog.delete().where(Blog.id == blog_id)
+            await BlogTag.delete().where(BlogTag.blog == blog_id)
             print("hereeee")
             return redirect("/load_table")
         except Exception as e:

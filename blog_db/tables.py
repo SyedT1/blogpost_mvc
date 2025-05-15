@@ -1,5 +1,5 @@
 from piccolo.table import Table
-from piccolo.columns import Varchar, Timestamp, Integer, Column, ForeignKey
+from piccolo.columns import Varchar, Timestamp, Integer, Column, ForeignKey, Text
 from piccolo.columns.column_types import TimestampNow
 
 class Category(Table):
@@ -39,4 +39,10 @@ class Comment(Table):
     post = ForeignKey(references=Blog)
     author = ForeignKey(references=UserInfo)
     content = Varchar()
+    datetime_of_creation = Timestamp(default=TimestampNow(), required=False)
+
+
+class ChatMessage(Table):
+    user = ForeignKey(references=UserInfo)
+    text = Text()
     datetime_of_creation = Timestamp(default=TimestampNow(), required=False)
