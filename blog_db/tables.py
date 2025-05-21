@@ -44,5 +44,6 @@ class Comment(Table):
 
 class ChatMessage(Table):
     user = ForeignKey(references=UserInfo)
+    channel_id = Integer()
     text = Text()
     datetime_of_creation = Timestamp(default=TimestampNow(), required=False)
